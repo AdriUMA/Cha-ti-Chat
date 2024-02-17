@@ -1,0 +1,117 @@
+{
+    "name": "GameActions",
+    "maps": [
+        {
+            "name": "PlayerController",
+            "id": "f0097e63-2f49-40dd-ade7-301a13acd654",
+            "actions": [
+                {
+                    "name": "Move",
+                    "type": "Value",
+                    "id": "ac0cc113-3f96-4f71-9221-9038cbb8683a",
+                    "expectedControlType": "Vector2",
+                    "processors": "NormalizeVector2",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "KeyBoard",
+                    "id": "b5e08419-bfa1-47ba-9108-bf441f8431c4",
+                    "path": "2DVector(mode=1)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "8015f449-2a7f-4bde-800d-2a5ab5ed3ff0",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "0fc8b11c-4258-4b78-8c76-a2b99694014c",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "27a59849-c9c2-4cc2-8f35-0d21f617327d",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "b748d594-d05b-4ce0-a046-1041ed42ca2a",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "adb5dc5a-aacf-459b-a659-03fd22fe3fb8",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "UI",
+            "id": "27e96f14-cfeb-4d09-84ed-02436dc63a12",
+            "actions": [
+                {
+                    "name": "Enter",
+                    "type": "Button",
+                    "id": "5ae2b10b-2ba5-4c4b-90d7-460c16ad21bf",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "3e848b9c-c857-46f6-b5f0-9c9779f2cfe9",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Enter",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

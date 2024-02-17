@@ -1,0 +1,20 @@
+0.	Accesorios pelo
+1.	Pendientes 
+2.	Mascaras y gafas
+3.	Pelo
+4.	Cabeza => CUERPO BASE
+5.	Pulsera/Guante brazo cercano
+6.	Manga brazo cercano
+7.	Brazo cercano => CUERPO BASE
+8.	Collares
+9.	Una pieza (traje/vestido)
+10.	Camiseta
+11. Falda 
+12. Zapatos 
+13. Pantalón
+14. Medias
+15. Piernas y pies => CUERPO BASE
+16. Torso => CUERPO BASE
+17. Pulsera/Guante brazo lejano
+18. Manga brazo lejano
+19. Brazo lejano => CUERPO BASE
