@@ -3,25 +3,43 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(PlayerInput), typeof(Collider))]
+[RequireComponent(typeof(DressController), typeof(PlayerInput))]
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController prov;
+
+    public enum Pose { Idle, WalkLeftFoot, WalkRightFoot };
+
+    public delegate void _OnPoseChanged(Pose pose);
+    public static event _OnPoseChanged OnPoseChanged;
+
+    [SerializeField, HideInInspector] private DressController _dressController;
     [SerializeField, HideInInspector] private PlayerInput _input;
     [SerializeField, HideInInspector] private Rigidbody2D _rb;
     [SerializeField, HideInInspector] private Animator _animator;
-    [SerializeField, HideInInspector] private SpriteRenderer _spriteRenderer;
+
     [SerializeField] private float _speed = 5f;
+
+    [SerializeField] private float _animationSwapTime = 0.2f;
+    private float _nextSwapAt;
+    private int _animationPhase = 0;
 
     Vector2 _movement = new();
 
     void OnValidate()
     {
+        _dressController = GetComponent<DressController>();
         _input = GetComponent<PlayerInput>();
         _rb = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
     }
+
+    private void Start()
+    {
+        prov = this;
+    }
+
     private void OnEnable()
     {
         _input.ActivateInput();
@@ -36,6 +54,11 @@ public class PlayerController : MonoBehaviour
         _input.actions["Move"].canceled -= Move;
     }
 
+    private void Update()
+    {
+        MovementAnimation();
+    }
+
     private void FixedUpdate()
     {
         _rb.velocity = _speed * Time.deltaTime * _movement;
@@ -47,13 +70,49 @@ public class PlayerController : MonoBehaviour
         {
             _movement = ctx.ReadValue<Vector2>();
 
-            _spriteRenderer.flipX = _movement.x > 0;
-            _animator.SetBool("Moving", true);
+            if(_movement.x != 0) _dressController.FlipX(_movement.x > 0);
         }
         else if (ctx.canceled)
         {
             _movement = Vector3.zero;
-            _animator.SetBool("Moving", false);
         }
+
+    }
+
+    private void MovementAnimation()
+    {
+        if (_movement != Vector2.zero)
+        {
+            // If the player is moving and the animation has to be changed
+            if (Time.time > _nextSwapAt || _nextSwapAt == float.PositiveInfinity)
+            {
+                switch (_animationPhase)
+                {
+                    case 0:
+                        OnPoseChanged?.Invoke(Pose.WalkLeftFoot);
+                        break;
+                    case 1:
+                        OnPoseChanged?.Invoke(Pose.Idle);
+                        break;
+                    case 2:
+                        OnPoseChanged?.Invoke(Pose.WalkRightFoot);
+                        break;
+                    case 3:
+                        OnPoseChanged?.Invoke(Pose.Idle);
+                        break;
+                }
+
+                _nextSwapAt = Time.time + _animationSwapTime;
+                _animationPhase = (_animationPhase + 1) % 4;
+            }
+        }else
+        {
+            OnPoseChanged?.Invoke(Pose.Idle);
+
+            _nextSwapAt = float.PositiveInfinity;
+            _animationPhase = 0;
+        }
+
+        
     }
 }
