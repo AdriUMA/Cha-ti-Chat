@@ -5,27 +5,24 @@ public class DressController : MonoBehaviour
 {
     [SerializeField] private Dictionary<DressAssigner.Identifier, DressAssigner> _assigners;
 
-    private void OnValidate()
+    private void Awake()
     {
+        
+    }
+
+    private void Start()
+    {
+        // Initialize the dictionary
         _assigners = new Dictionary<DressAssigner.Identifier, DressAssigner>();
 
         // Get all sprite layer assigners in the hierarchy
         var assigners = GetComponentsInChildren<DressAssigner>();
 
-        // Add all assigners to the dictionary
-        foreach (var assigner in assigners) _assigners.Add(assigner.identifier, assigner);
-    }
-
-    private void Awake()
-    {
-        foreach (var assigner in _assigners.Values) assigner.DeactivateAllDress();
-    }
-
-    private void Start()
-    {
-        foreach (DressAssigner.Identifier type in System.Enum.GetValues(typeof(DressAssigner.Identifier)))
+        // Add all assigners to the dictionary & deactivate all dress
+        foreach (DressAssigner assigner in assigners)
         {
-            DeactivateDress(type, false);
+            _assigners.Add(assigner.identifier, assigner);
+            assigner.DeactivateAllDress();
         }
 
         SetDress(DressAssigner.Identifier.BaseBodyHead, "Angustias");

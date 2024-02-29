@@ -1,6 +1,8 @@
+using Netcode.Transports.Facepunch;
 using Steamworks;
 using Steamworks.Data;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
 public class SteamManager : MonoBehaviour
@@ -41,6 +43,11 @@ public class SteamManager : MonoBehaviour
         Debug.Log("Lobby joined");
 
         CheckUI();
+
+        if(NetworkManager.Singleton.IsHost) return;
+
+        NetworkManager.Singleton.gameObject.GetComponent<FacepunchTransport>().targetSteamId = lobby.Owner.Id;
+        NetworkManager.Singleton.StartClient();
     }
 
     private void OnLobbyCreated(Result result, Lobby lobby)
@@ -52,6 +59,8 @@ public class SteamManager : MonoBehaviour
             
             _lobbyID.text = lobby.Id.ToString();
             SteamLobbySaver.instance.currentLobby = lobby;
+
+            NetworkManager.Singleton.StartHost();
         }
     }
 
@@ -76,6 +85,8 @@ public class SteamManager : MonoBehaviour
         SteamLobbySaver.instance.currentLobby?.Leave();
         SteamLobbySaver.instance.currentLobby = null;
 
+        NetworkManager.Singleton.Shutdown();
+
         CheckUI();
     }
 
@@ -85,5 +96,13 @@ public class SteamManager : MonoBehaviour
         
         _mainMenu.SetActive(!AmIInALobby);
         _inLobbyMenu.SetActive(AmIInALobby);
+    }
+
+    public void StartGameServer()
+    {
+        if (NetworkManager.Singleton.IsHost)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene("Gameplay", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
     }
 }

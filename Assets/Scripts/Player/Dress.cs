@@ -18,7 +18,11 @@ public class Dress : MonoBehaviour
         // Set the idle sprite by default
         _spriteRenderer.sprite = _idle;
 
-        transform.GetComponentInParent<DressAssigner>().OnValidate();
+        var assigner = GetComponentInParent<DressAssigner>();
+
+        if (assigner == null) return;
+
+        assigner.OnValidate();
 
         // Check if the identifier already exist
         Dress[] dresses = transform.parent.GetComponentsInChildren<Dress>();
