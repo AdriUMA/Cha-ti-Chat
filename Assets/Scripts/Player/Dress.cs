@@ -1,10 +1,14 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(SpriteRenderer))]
 [DisallowMultipleComponent]
 public class Dress : MonoBehaviour
 {
+    [SerializeField, HideInInspector] private DressAssigner _assigner;
+    private PlayerController PlayerController => _assigner.dressCrontroller.playerController;
+
     [SerializeField] public string identifier = "DRESS_ID";
     [SerializeField] private Sprite _idle;
     [SerializeField] private Sprite _walkLeftFoot;
@@ -18,11 +22,11 @@ public class Dress : MonoBehaviour
         // Set the idle sprite by default
         _spriteRenderer.sprite = _idle;
 
-        var assigner = GetComponentInParent<DressAssigner>();
+        _assigner = GetComponentInParent<DressAssigner>();
 
-        if (assigner == null) return;
+        if (_assigner == null) return;
 
-        assigner.OnValidate();
+        _assigner.Validate();
 
         // Check if the identifier already exist
         Dress[] dresses = transform.parent.GetComponentsInChildren<Dress>();
@@ -40,12 +44,12 @@ public class Dress : MonoBehaviour
 
     private void OnEnable()
     {
-        PlayerController.OnPoseChanged += ChangeSprite;
+        StartCoroutine(SubscribeToPlayerEvent(true));
     }
 
     private void OnDisable()
     {
-        PlayerController.OnPoseChanged -= ChangeSprite;
+        StartCoroutine(SubscribeToPlayerEvent(false));
     }
 
     private void ChangeSprite(PlayerController.Pose pose)
@@ -64,5 +68,15 @@ public class Dress : MonoBehaviour
             default:
                 throw new ArgumentOutOfRangeException(nameof(pose), pose, null);
         }
+    }
+
+    IEnumerator SubscribeToPlayerEvent(bool enable)
+    {
+        if(_assigner == null) yield return new WaitUntil(() => _assigner != null);
+        if(_assigner.dressCrontroller == null) yield return new WaitUntil(() => _assigner.dressCrontroller != null);
+        if (_assigner.dressCrontroller.playerController == null) yield return new WaitUntil(() => _assigner.dressCrontroller.playerController != null);
+        
+        if(enable) PlayerController.OnPoseChanged += ChangeSprite;
+        else PlayerController.OnPoseChanged -= ChangeSprite;
     }
 }

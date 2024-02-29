@@ -1,23 +1,25 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(DressController), typeof(PlayerInput))]
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     public static PlayerController prov;
 
     public enum Pose { Idle, WalkLeftFoot, WalkRightFoot };
 
     public delegate void _OnPoseChanged(Pose pose);
-    public static event _OnPoseChanged OnPoseChanged;
+    public event _OnPoseChanged OnPoseChanged;
 
     [SerializeField, HideInInspector] private DressController _dressController;
     [SerializeField, HideInInspector] private PlayerInput _input;
     [SerializeField, HideInInspector] private Rigidbody2D _rb;
-    [SerializeField, HideInInspector] private Animator _animator;
 
     [SerializeField] private float _speed = 5f;
 
@@ -26,13 +28,14 @@ public class PlayerController : MonoBehaviour
     private int _animationPhase = 0;
 
     Vector2 _movement = new();
+    Vector3 _lastPosition = new();
+    bool _inputActive = false;
 
     void OnValidate()
     {
         _dressController = GetComponent<DressController>();
         _input = GetComponent<PlayerInput>();
         _rb = GetComponent<Rigidbody2D>();
-        _animator = GetComponent<Animator>();
     }
 
     private void Start()
@@ -40,23 +43,45 @@ public class PlayerController : MonoBehaviour
         prov = this;
     }
 
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner && !_inputActive)
+        {
+            _inputActive = true;
+
+            _input.ActivateInput();
+            _input.actions["Move"].performed += Move;
+            _input.actions["Move"].canceled += Move;
+        }
+    }
+
     private void OnEnable()
     {
-        _input.ActivateInput();
-        _input.actions["Move"].performed += Move;
-        _input.actions["Move"].canceled += Move;
+        NetworkManager.Singleton.NetworkTickSystem.Tick += MovementAnimation;
+
+        if (IsOwner && !_inputActive)
+        {
+            _inputActive = true;
+
+            _input.ActivateInput();
+            _input.actions["Move"].performed += Move;
+            _input.actions["Move"].canceled += Move;
+        }
     }
 
     private void OnDisable()
     {
-        _input.DeactivateInput();
-        _input.actions["Move"].performed -= Move;
-        _input.actions["Move"].canceled -= Move;
-    }
+        NetworkManager.Singleton.NetworkTickSystem.Tick -= MovementAnimation;
 
-    private void Update()
-    {
-        MovementAnimation();
+
+        if (IsOwner && _inputActive)
+        {
+            _inputActive = false;
+
+            _input.DeactivateInput();
+            _input.actions["Move"].performed -= Move;
+            _input.actions["Move"].canceled -= Move;
+        }
     }
 
     private void FixedUpdate()
@@ -81,7 +106,7 @@ public class PlayerController : MonoBehaviour
 
     private void MovementAnimation()
     {
-        if (_movement != Vector2.zero)
+        if (_lastPosition != transform.position)
         {
             // If the player is moving and the animation has to be changed
             if (Time.time > _nextSwapAt || _nextSwapAt == float.PositiveInfinity)
@@ -113,6 +138,7 @@ public class PlayerController : MonoBehaviour
             _animationPhase = 0;
         }
 
-        
+        _lastPosition = transform.position;
     }
+
 }
