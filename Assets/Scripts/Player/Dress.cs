@@ -49,7 +49,7 @@ public class Dress : MonoBehaviour
 
     private void OnDisable()
     {
-        StartCoroutine(SubscribeToPlayerEvent(false));
+        SubscribeToPlayerEvent(false);
     }
 
     private void ChangeSprite(PlayerController.Pose pose)
