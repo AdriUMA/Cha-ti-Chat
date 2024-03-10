@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,7 +10,7 @@ public class PlayerController : NetworkBehaviour
 
     public enum Pose { Idle, WalkLeftFoot, WalkRightFoot };
 
-    public delegate void _OnPoseChanged(Pose pose);
+    public delegate void _OnPoseChanged(Pose pose, bool flipX);
     public event _OnPoseChanged OnPoseChanged;
 
     [SerializeField, HideInInspector] private DressController _dressController;
@@ -24,8 +20,10 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float _speed = 5f;
 
     [SerializeField] private float _animationSwapTime = 0.2f;
+    [SerializeField, Range(0.01f, 2f)] private float _animationThresholdDifference = 0.1f;
     private float _nextSwapAt;
     private int _animationPhase = 0;
+    private bool _flipX = false;
 
     Vector2 _movement = new();
     Vector3 _lastPosition = new();
@@ -95,7 +93,7 @@ public class PlayerController : NetworkBehaviour
         {
             _movement = ctx.ReadValue<Vector2>();
 
-            if(_movement.x != 0) _dressController.FlipX(_movement.x > 0);
+            // if(_movement.x != 0) _dressController.FlipX(_movement.x > 0);
         }
         else if (ctx.canceled)
         {
@@ -106,33 +104,36 @@ public class PlayerController : NetworkBehaviour
 
     private void MovementAnimation()
     {
-        if (_lastPosition != transform.position)
+        if (Vector2.Distance(_lastPosition, transform.position) > _animationThresholdDifference)
         {
             // If the player is moving and the animation has to be changed
             if (Time.time > _nextSwapAt || _nextSwapAt == float.PositiveInfinity)
             {
+                _flipX = _lastPosition.x - transform.position.x < 0;
+
                 switch (_animationPhase)
                 {
                     case 0:
-                        OnPoseChanged?.Invoke(Pose.WalkLeftFoot);
+                        OnPoseChanged?.Invoke(Pose.WalkLeftFoot, _flipX);
                         break;
                     case 1:
-                        OnPoseChanged?.Invoke(Pose.Idle);
+                        OnPoseChanged?.Invoke(Pose.Idle, _flipX);
                         break;
                     case 2:
-                        OnPoseChanged?.Invoke(Pose.WalkRightFoot);
+                        OnPoseChanged?.Invoke(Pose.WalkRightFoot, _flipX);
                         break;
                     case 3:
-                        OnPoseChanged?.Invoke(Pose.Idle);
+                        OnPoseChanged?.Invoke(Pose.Idle, _flipX);
                         break;
                 }
 
                 _nextSwapAt = Time.time + _animationSwapTime;
                 _animationPhase = (_animationPhase + 1) % 4;
             }
-        }else
+        }
+        else
         {
-            OnPoseChanged?.Invoke(Pose.Idle);
+            OnPoseChanged?.Invoke(Pose.Idle, _flipX);
 
             _nextSwapAt = float.PositiveInfinity;
             _animationPhase = 0;

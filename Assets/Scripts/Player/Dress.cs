@@ -52,8 +52,10 @@ public class Dress : MonoBehaviour
         SubscribeToPlayerEvent(false);
     }
 
-    private void ChangeSprite(PlayerController.Pose pose)
+    private void ChangeSprite(PlayerController.Pose pose, bool flipX)
     {
+        _spriteRenderer.flipX = flipX;
+
         switch (pose)
         {
             case PlayerController.Pose.Idle:
@@ -72,11 +74,34 @@ public class Dress : MonoBehaviour
 
     IEnumerator SubscribeToPlayerEvent(bool enable)
     {
-        if(_assigner == null) yield return new WaitUntil(() => _assigner != null);
-        if(_assigner.dressCrontroller == null) yield return new WaitUntil(() => _assigner.dressCrontroller != null);
-        if (_assigner.dressCrontroller.playerController == null) yield return new WaitUntil(() => _assigner.dressCrontroller.playerController != null);
-        
-        if(enable) PlayerController.OnPoseChanged += ChangeSprite;
+        float pollingWaitTime = 0.1f;
+        float timePassed = 0f;
+        float timeOut = 5f;
+
+        while (_assigner == null)
+        {
+            _assigner = GetComponentInParent<DressAssigner>();
+
+            yield return new WaitForSecondsRealtime(pollingWaitTime);
+            timePassed += pollingWaitTime;
+
+            if (timePassed >= timeOut)
+            {
+                throw new NullReferenceException("DressAssigner not found");
+            }
+        }
+        while (_assigner.dressCrontroller == null || _assigner.dressCrontroller.playerController == null)
+        {
+            yield return new WaitForSecondsRealtime(pollingWaitTime);
+            timePassed += pollingWaitTime;
+
+            if (timePassed >= timeOut)
+            {
+                throw new NullReferenceException("PlayerController not found");
+            }
+        }
+
+        if (enable) PlayerController.OnPoseChanged += ChangeSprite;
         else PlayerController.OnPoseChanged -= ChangeSprite;
     }
 }
