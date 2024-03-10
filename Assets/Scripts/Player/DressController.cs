@@ -1,17 +1,31 @@
+using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class DressController : MonoBehaviour
 {
     [SerializeField] private Dictionary<DressAssigner.Identifier, DressAssigner> _assigners;
+    [SerializeField, HideInInspector] public PlayerController playerController;
 
-    private void Awake()
+    private void OnValidate()
     {
-        
+        playerController = GetComponent<PlayerController>();
     }
 
     private void Start()
     {
+        StartCoroutine(WaitForNetworkInstantiate());
+    }
+
+    IEnumerator WaitForNetworkInstantiate()
+    {
+        if (NetworkManager.Singleton == null) yield return new WaitUntil(() => NetworkManager.Singleton != null);
+        if (GetComponentInParent<DressController>() == null) yield return new WaitUntil(() => GetComponentInParent<DressController>() != null);
+        if (GetComponentInParent<PlayerController>() == null) yield return new WaitUntil(() => GetComponentInParent<PlayerController>() != null);
+
+        yield return new WaitForSecondsRealtime(0.5f);
+
         // Initialize the dictionary
         _assigners = new Dictionary<DressAssigner.Identifier, DressAssigner>();
 

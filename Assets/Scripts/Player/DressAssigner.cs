@@ -1,6 +1,7 @@
 using Steamworks;
+using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using Unity.Netcode;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -33,10 +34,16 @@ public class DressAssigner : MonoBehaviour
     [SerializeField] public Identifier identifier;
     [SerializeField] private int _sortingOrder;
     [SerializeField, HideInInspector] private Dictionary<string, Dress> _dress;
+    [SerializeField, HideInInspector] public DressController dressCrontroller;
     private Dress _currentDress = null;
     private bool _flipX = false;
 
-    public void OnValidate()
+    public void Start()
+    {
+        Validate();
+    }
+
+    public void Validate()
     {
         _dress = new Dictionary<string, Dress>();
 
@@ -48,6 +55,9 @@ public class DressAssigner : MonoBehaviour
 
         // Set the sorting order to all dress
         UpdateSortingOrder(0, false);
+
+        // Set the dress controller
+        dressCrontroller = GetComponentInParent<DressController>();
     }
 
     /// <summary>
